@@ -1,4 +1,4 @@
-#This Fork
+# This Fork
 
 This is a fork of the original SuCOS repository by Susan Leung. This fork contains a modified version of SuCOS, that has a normalized output, circumventing the issue of generating SuCOS scores of >1 in some circumstances. This is achieved by using the FeatMapScoreMode.Best scoring mode as default as opposed to the FeatMapScoreMode.All originally used in SuCOS. You can still use the other scoring modes when specified, however it is recommended to use the "Best" scoring mode for normalized SuCOS scores.
 
