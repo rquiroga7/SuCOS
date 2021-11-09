@@ -1,3 +1,7 @@
+#This Fork
+
+This is a fork of the original SuCOS repository by Susan Leung. This fork contains a modified version of SuCOS, that has a normalized output, circumventing the issue of generating SuCOS scores of >1 in some circumstances. This is achieved by using the FeatMapScoreMode.Best scoring mode as default as opposed to the FeatMapScoreMode.All originally used in SuCOS. You can still use the other scoring modes when specified, however it is recommended to use the "Best" scoring mode for normalized SuCOS scores.
+
 # SuCOS
 
 SuCOS is an RDKit-based overlap measure that combines volumetric shape and pharmacophoric features to give a combined overlap score similar to OpenEye's Tversky Combo and [Malhotra and Karanicolas' COS measure](https://pubs.acs.org/doi/abs/10.1021/acs.jmedchem.6b00725). 
@@ -23,7 +27,7 @@ You can run the unit tests by typing:
 
 ## Command line help.
 
-To list the options available in calc_SuCOS.py, type:
+To list the options available in calc_SuCOS_normalized.py, type:
 
 ```
 > python calc_SuCOS.py -h
@@ -44,7 +48,7 @@ optional arguments:
   --return_all
   --score_mode {all,closest,best}
                         choose the scoring mode for the feature map, default
-                        is all.
+                        is best.
 
 ```
 ## Example

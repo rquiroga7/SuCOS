@@ -4,8 +4,9 @@
 """Tests for calc_SuCOS.py"""
 import unittest
 import os
-import calc_SuCOS
+import calc_SuCOS_normalized as calc_SuCOS
 from rdkit import Chem
+from rdkit.Chem.FeatMaps import FeatMaps
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -120,30 +121,13 @@ class TestCase(unittest.TestCase):
         assert SuCOS_score2 < SuCOS_score 
     
     def test8_SuCOS(self):
-        """Another test to check Hydrogens don't affect score"""
-        ref_sdf = "test_data/3adu_lig.sdf"
-        prb_sdf = "test_data/3ads_lig.sdf"
-        refH_sdf = "test_data/3adu_ligH.sdf"
-        prbH_sdf = "test_data/3ads_ligH.sdf"
-
-
-        SuCOS_score1 = calc_SuCOS.main(ref_sdf, prb_sdf)
-        SuCOS_score2 = calc_SuCOS.main(refH_sdf, prbH_sdf)
-        SuCOS_score3 = calc_SuCOS.main(refH_sdf, prb_sdf)
-        SuCOS_score4 = calc_SuCOS.main(ref_sdf, prbH_sdf)
-
-        assert SuCOS_score1 == SuCOS_score2
-        assert SuCOS_score1 == SuCOS_score3
-        assert SuCOS_score1 == SuCOS_score4
-
-    def test9_SuCOS(self):
         """Testing to make sure SuCOS score is not > 1 with a
         molecule and itself"""
         ref_sdf = "test_data/3ivc_ligand.sdf"
         SuCOS_score = calc_SuCOS.main(ref_sdf, ref_sdf)
         assert SuCOS_score <= 1
 
-    def test10_SuCOS(self):
+    def test9_SuCOS(self):
         """Testing to make sure SuCOS score is not > 1 with a
         molecule and itself"""
         from rdkit.Chem import rdMolAlign
@@ -154,7 +138,19 @@ class TestCase(unittest.TestCase):
         pyO3A = rdMolAlign.GetO3A(gen_mol, ref_mol).Align()
         SuCOS_score = calc_SuCOS.main(gen_mol, ref_mol, write=False)
         assert SuCOS_score <= 1
-
+        
+    def test10_SuCOS(self):
+        """Testing to make sure score mode Best is normalized and score mode All is not!"""
+        from rdkit.Chem import rdMolAlign
+        ref_sdf = "test_data/3ivc_ligand.sdf"
+        ref_ms = Chem.SDMolSupplier(ref_sdf)
+        gen_mol = Chem.Mol(ref_ms[0])
+        ref_mol = Chem.Mol(ref_ms[0])
+        pyO3A = rdMolAlign.GetO3A(gen_mol, ref_mol).Align()
+        SuCOS_score_best = calc_SuCOS.main(gen_mol, ref_mol, write=False)
+        SuCOS_score_all = calc_SuCOS.main(gen_mol, ref_mol, write=False, score_mode=FeatMaps.FeatMapScoreMode.All)
+        assert SuCOS_score_best <= 1
+        assert SuCOS_score_all > 1
 
 if __name__ == '__main__':
     print("Testing SuCOS")

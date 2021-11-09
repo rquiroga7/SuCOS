@@ -14,6 +14,8 @@ from rdkit import RDConfig
 fdef = AllChem.BuildFeatureFactory(os.path.join(RDConfig.RDDataDir, 'BaseFeatures.fdef'))
 #    keep = ('Donor','Acceptor','NegIonizable','PosIonizable','Aromatic')
 
+
+
 fmParams = {}
 for k in fdef.GetFeatureFamilies():
     fparams = FeatMaps.FeatMapParams()
@@ -23,7 +25,7 @@ keep = ('Donor', 'Acceptor', 'NegIonizable', 'PosIonizable', 'ZnBinder',
         'Aromatic', 'Hydrophobe', 'LumpedHydrophobe')
 #################################################
 
-def get_FeatureMapScore(small_m, large_m, score_mode=FeatMaps.FeatMapScoreMode.All):
+def get_FeatureMapScore(small_m, large_m, score_mode=FeatMaps.FeatMapScoreMode.Best):
     featLists = []
     for m in [small_m, large_m]:
         rawFeats = fdef.GetFeaturesForMol(m)
@@ -34,8 +36,8 @@ def get_FeatureMapScore(small_m, large_m, score_mode=FeatMaps.FeatMapScoreMode.A
     fm_score = fms[0].ScoreFeats(featLists[1]) / min(fms[0].GetNumFeatures(), len(featLists[1]))
     return fm_score
 
-def main(ref_file, prb_file, write=True, return_all=False,
-         score_mode=FeatMaps.FeatMapScoreMode.All):
+def main(ref_file, prb_file, score_mode=FeatMaps.FeatMapScoreMode.Best, write=True, return_all=False):
+         
     if type(ref_file) == str:
         if os.path.splitext(ref_file)[-1] == '.sdf':
             reflig = Chem.MolFromMolFile(ref_file, sanitize=True)
@@ -70,7 +72,7 @@ def main(ref_file, prb_file, write=True, return_all=False,
         ####### Feature map
         ##############################################
         fm_score = get_FeatureMapScore(reflig, prb_mol, score_mode)
-        fm_score = np.clip(fm_score, 0, 1)
+        #fm_score = np.clip(fm_score, 0, 1) #Commented out, no longer necessary if using score_mode=Best (~Marc)
         ##############################################
 
         #tversky_ind = rdShapeHelpers.ShapeTverskyIndex(reflig, prb_mol, 1.0, 0.0)
@@ -78,12 +80,16 @@ def main(ref_file, prb_file, write=True, return_all=False,
         
         protrude_dist = rdShapeHelpers.ShapeProtrudeDist(reflig, prb_mol,
                 allowReordering=False)
-        protrude_dist = np.clip(protrude_dist, 0, 1)
+        #protrude_dist = np.clip(protrude_dist, 0, 1)
         SuCOS_score = 0.5*fm_score + 0.5*(1 - protrude_dist)
 
+		#For high throughput consider commenting out print statements to deconvolute terminal (~Marc)
         print ("********************************")
         print ("SuCOS score:\t%f" % SuCOS_score)
+        print ("Chem features:\t%f" % fm_score)
+        print ("ShapeProtrudeDist:\t%f" % protrude_dist)
         print ("********************************")
+
         prb_mol.SetProp("SuCOS_score", str(SuCOS_score))
         prb_mol.SetProp("Volume_score", str(1 - protrude_dist))
         prb_mol.SetProp("Feature_score", str(fm_score))
@@ -107,7 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('--return_all', action='store_true', default=False)
     parser.add_argument('--score_mode', choices=['all', 'closest', 'best'],
                         help='choose the scoring mode for the feature map,\
-                        default is all.')
+                        default is best.')
 
     args = parser.parse_args()
 
@@ -116,18 +122,18 @@ if __name__ == "__main__":
 
     if args.score_mode:
         if args.score_mode == 'all':
-            print ("Feature maps scoring by all")
+            print ("Feature maps scoring by all. WARNING: THIS IS NOT NORMALIZED")
             score_mode = FeatMaps.FeatMapScoreMode.All
         elif args.score_mode == 'closest':
-            print ("Feature maps scoring by closest")
+            print ("Feature maps scoring by closest. WARNING: THIS IS NOT NORMALIZED")
             score_mode = FeatMaps.FeatMapScoreMode.Closest
-        elif args.score_mode == 'best':
-            print ("Feature maps scoring by best")
+        elif args.score_mode == 'best': #FeatMapScoreMode.Best normalizes SuCOS ##MARC 
+            print ("Feature maps scoring by best. This is standard.")
             score_mode = FeatMaps.FeatMapScoreMode.Best
         else:
             print ("This is not an option")
     else:
-        print ("Feature maps scoring by all")
-        score_mode = FeatMaps.FeatMapScoreMode.All
+        print ("Feature maps scoring by best. This is standard.")
+        score_mode = FeatMaps.FeatMapScoreMode.Best
 
     main(ref_file, prb_file, args.write, args.return_all, score_mode)
