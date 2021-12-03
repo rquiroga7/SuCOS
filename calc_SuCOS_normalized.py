@@ -8,7 +8,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, rdShapeHelpers
 from rdkit.Chem.FeatMaps import FeatMaps
 from rdkit import RDConfig
-
+from rdkit.Chem import rdMolAlign
 #################################################
 #### Setting up the features to use in FeatureMap
 fdef = AllChem.BuildFeatureFactory(os.path.join(RDConfig.RDDataDir, 'BaseFeatures.fdef'))
@@ -71,6 +71,7 @@ def main(ref_file, prb_file, score_mode=FeatMaps.FeatMapScoreMode.Best, write=Tr
         ##############################################
         ####### Feature map
         ##############################################
+        
         fm_score = get_FeatureMapScore(reflig, prb_mol, score_mode)
         #fm_score = np.clip(fm_score, 0, 1) #Commented out, no longer necessary if using score_mode=Best (~Marc)
         ##############################################
@@ -121,6 +122,7 @@ if __name__ == "__main__":
     prb_file = args.lig2
 
     if args.score_mode:
+        print("mode specified:")
         if args.score_mode == 'all':
             print ("Feature maps scoring by all. WARNING: THIS IS NOT NORMALIZED")
             score_mode = FeatMaps.FeatMapScoreMode.All
@@ -133,7 +135,8 @@ if __name__ == "__main__":
         else:
             print ("This is not an option")
     else:
+        print("standard mode utilized:")
         print ("Feature maps scoring by best. This is standard.")
         score_mode = FeatMaps.FeatMapScoreMode.Best
 
-    main(ref_file, prb_file, args.write, args.return_all, score_mode)
+    main(ref_file, prb_file, score_mode, args.write, args.return_all)

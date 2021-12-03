@@ -56,7 +56,21 @@ class TestCase(unittest.TestCase):
         for m in ms:
             SuCOS_score = float(m.GetProp("SuCOS_score"))
             assert SuCOS_score != 0
+	
+    def test4_SuCOS(self):
+        """Test rotation of COOH group. NB it lowers score by approx 0.05"""
+        ref_sdf = "test_data/4e3g_lig.sdf"
+        prb_sdf = "test_data/4e3g_lig_rotatedCOOH.sdf"
 
+        calc_SuCOS.main(ref_sdf, prb_sdf)
+        outfile = "%s_SuCOS_score.sdf" % os.path.splitext(prb_sdf)[0]
+
+        assert os.path.isfile(outfile)
+        ms = Chem.SDMolSupplier(outfile)
+        assert len(ms) == 1
+        SuCOS_score = float(ms[0].GetProp("SuCOS_score"))
+        assert isclose(SuCOS_score, 0.95, abs_tol=1e-2)
+        
     def test5_SuCOS(self):
         """Prb molecule is same as ref but with extra group"""
         ref_sdf = "test_data/4e3g_lig.sdf"
@@ -71,19 +85,7 @@ class TestCase(unittest.TestCase):
         SuCOS_score = float(ms[0].GetProp("SuCOS_score"))
         assert isclose(SuCOS_score, 1.0, abs_tol=1e-2)
 
-    def test4_SuCOS(self):
-        """Test rotation of COOH group. NB it lowers score by approx 0.05"""
-        ref_sdf = "test_data/4e3g_lig.sdf"
-        prb_sdf = "test_data/4e3g_lig_rotatedCOOH.sdf"
-
-        calc_SuCOS.main(ref_sdf, prb_sdf)
-        outfile = "%s_SuCOS_score.sdf" % os.path.splitext(prb_sdf)[0]
-
-        assert os.path.isfile(outfile)
-        ms = Chem.SDMolSupplier(outfile)
-        assert len(ms) == 1
-        SuCOS_score = float(ms[0].GetProp("SuCOS_score"))
-        assert isclose(SuCOS_score, 0.95, abs_tol=1e-2)
+    
 
     def test6_SuCOS(self):
         """Complains if wrong input file format"""
@@ -122,35 +124,34 @@ class TestCase(unittest.TestCase):
     
     def test8_SuCOS(self):
         """Testing to make sure SuCOS score is not > 1 with a
-        molecule and itself"""
-        ref_sdf = "test_data/3ivc_ligand.sdf"
+        molecule and itself when loading in as file location"""
+        ref_sdf = "test_data/test.sdf"
         SuCOS_score = calc_SuCOS.main(ref_sdf, ref_sdf)
         assert SuCOS_score <= 1
 
     def test9_SuCOS(self):
         """Testing to make sure SuCOS score is not > 1 with a
-        molecule and itself"""
-        from rdkit.Chem import rdMolAlign
-        ref_sdf = "test_data/3ivc_ligand.sdf"
+        molecule and itself when loading in as rdkitmol"""
+        ref_sdf = "test_data/test.sdf"
         ref_ms = Chem.SDMolSupplier(ref_sdf)
         gen_mol = Chem.Mol(ref_ms[0])
         ref_mol = Chem.Mol(ref_ms[0])
-        pyO3A = rdMolAlign.GetO3A(gen_mol, ref_mol).Align()
         SuCOS_score = calc_SuCOS.main(gen_mol, ref_mol, write=False)
         assert SuCOS_score <= 1
         
     def test10_SuCOS(self):
         """Testing to make sure score mode Best is normalized and score mode All is not!"""
-        from rdkit.Chem import rdMolAlign
-        ref_sdf = "test_data/3ivc_ligand.sdf"
+        
+        ref_sdf = "test_data/test.sdf"
         ref_ms = Chem.SDMolSupplier(ref_sdf)
         gen_mol = Chem.Mol(ref_ms[0])
         ref_mol = Chem.Mol(ref_ms[0])
-        pyO3A = rdMolAlign.GetO3A(gen_mol, ref_mol).Align()
         SuCOS_score_best = calc_SuCOS.main(gen_mol, ref_mol, write=False)
         SuCOS_score_all = calc_SuCOS.main(gen_mol, ref_mol, write=False, score_mode=FeatMaps.FeatMapScoreMode.All)
+        
         assert SuCOS_score_best <= 1
         assert SuCOS_score_all > 1
+        
 
 if __name__ == '__main__':
     print("Testing SuCOS")
