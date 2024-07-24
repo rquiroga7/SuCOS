@@ -85,11 +85,11 @@ def main(ref_file, prb_file, score_mode=FeatMaps.FeatMapScoreMode.Best, write=Tr
         SuCOS_score = 0.5*fm_score + 0.5*(1 - protrude_dist)
 
 		#For high throughput consider commenting out print statements to deconvolute terminal (~Marc)
-        print ("********************************")
+        #print ("********************************")
         print ("SuCOS score:\t%f" % SuCOS_score)
-        print ("Chem features:\t%f" % fm_score)
-        print ("ShapeProtrudeDist:\t%f" % protrude_dist)
-        print ("********************************")
+        #print ("Chem features:\t%f" % fm_score)
+        #print ("ShapeProtrudeDist:\t%f" % protrude_dist)
+        #print ("********************************")
 
         prb_mol.SetProp("SuCOS_score", str(SuCOS_score))
         prb_mol.SetProp("Volume_score", str(1 - protrude_dist))
@@ -135,8 +135,8 @@ if __name__ == "__main__":
         else:
             print ("This is not an option")
     else:
-        print("standard mode utilized:")
-        print ("Feature maps scoring by best. This is standard.")
+        #print("standard mode utilized:")
+        #print ("Feature maps scoring by best. This is standard.")
         score_mode = FeatMaps.FeatMapScoreMode.Best
 
     main(ref_file, prb_file, score_mode, args.write, args.return_all)
